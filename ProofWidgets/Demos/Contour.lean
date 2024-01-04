@@ -154,12 +154,11 @@ def ContourVis.rpc (props : PanelWidgetProps) : RequestM (RequestTask Html) :=
 def ContourVis : Component PanelWidgetProps :=
   mk_rpc_widget% ContourVis.rpc
 
+-- example contour from the following video
+-- https://www.youtube.com/watch?v=Ff4LRlflib0&list=PLD2r7XEOtm-AP2m2sycrU32TvOZ8Z2v7-&index=6
 example {α : Type} : 2 + 2 = 5 := by
   with_panel_widgets [ContourVis]
-  let bruh := Line (0, 0) (100, 0)
-  let bruh2 := Line (100, 0) (100, 100)
-  let bruh3 := Line (100, 100) (0, 100)
-  let bruh4 := Line (0, 100) (0, 0)
-  let alskdjasldjkal := Arc (100, 0) 50 270 0
-  let lol := Arc (100, 0) 50 0 90
-  let wow := 2 + 2 = 4
+  let Γ := Arc (10, 0) 10 0 180
+  let Rε := Line (0, 0) (8, 0)
+  let εR := Line (12, 0) (20, 0)
+  let γ := Arc (10, 0) 2 0 180

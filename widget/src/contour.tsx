@@ -36,6 +36,10 @@ interface BoundingBox {
   maxY: number;
 }
 
+function normalize(vec: [number, number]){
+  return [vec[0] / Math.sqrt(vec[0]**2 + vec[1]**2), vec[1] / Math.sqrt(vec[0]**2 + vec[1]**2)]
+}
+
 function calculateBoundingBox(lines: Line[], arcs: Arc[]): BoundingBox {
   let minX = Infinity;
   let minY = Infinity;
@@ -128,6 +132,8 @@ export default function Contour(props: ContourProps) {
         const endAngle = arc.endAngle * (Math.PI / 180);
         const largeArcFlag = endAngle - startAngle <= Math.PI ? "0" : "1";
 
+        const textDir = normalize([Math.cos(startAngle) + Math.cos(endAngle), Math.sin(startAngle) + Math.sin(endAngle)])
+
         return (
           <>
             <path
@@ -150,7 +156,7 @@ export default function Contour(props: ContourProps) {
                 return newSet
               })}
             />
-            <text x={`${arcX + (radius*1.2)* Math.cos((startAngle + endAngle) / 2)}`} y={`${arcY + (radius*1.2) * Math.sin((startAngle + endAngle) / 2)}`}
+            <text x={`${arcX + (radius*1.2)* textDir[0]}`} y={`${arcY + (radius*1.2) * textDir[1]}`}
               font-family="Arial" font-size="10" fill={highlighted.has(arc.label) ? "red" : "black"} >{arc.label}</text>
           </>
         )
