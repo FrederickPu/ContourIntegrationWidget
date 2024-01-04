@@ -21,7 +21,7 @@ structure line where
   endPoint : point
   deriving ToJson, FromJson
 structure arc where
-  labe : String
+  label : String
   center : point
   radius : Float
   startAngle : Float
@@ -81,6 +81,7 @@ partial def Lean.Expr.numeral? (e : Expr) : Option Nat :=
       else none
 
 def Line (a b : Nat × Nat) : Nat → Nat × Nat := fun t => ((1 - t) * a.1 + b.1, (1 - t) * a.2 + b.2)
+def Arc (c : Nat × Nat) (R α β : Nat) : Nat → Nat × Nat := sorry
 
 partial def isLine (e : Expr) : Option ((Nat × Nat) × (Nat × Nat)) :=
   match e.getAppFnArgs with
@@ -92,6 +93,18 @@ partial def isLine (e : Expr) : Option ((Nat × Nat) × (Nat × Nat)) :=
         some ((a', b'), c', d')
       | _, _, _, _ => none
     | _, _ => none
+  | _ => none
+
+partial def isArc (e : Expr) : Option ((Nat × Nat) × Nat × Nat × Nat) :=
+  match e.getAppFnArgs with
+  | (``Arc, #[e1, e2, e3, e4]) =>
+    match e1.getAppFnArgs with
+    | (``Prod.mk, #[_, _, a, b]) =>
+      match a.numeral?, b.numeral?, e2.numeral?, e3.numeral?, e4.numeral? with
+      | some a', some b', some c', some d', some e' =>
+        some ((a', b'), c', d', e')
+      | _, _, _, _, _ => none
+    | _ => none
   | _ => none
 
 
@@ -114,6 +127,7 @@ def ContourVis.rpc (props : PanelWidgetProps) : RequestM (RequestTask Html) :=
         let lctx := md.lctx |>.sanitizeNames.run' {options := (← getOptions)}
         Meta.withLCtx lctx md.localInstances do
           let mut lines : List line := []
+          let mut arcs : List arc := []
 
           -- Grab all hypotheses from the local context.
           let allHyps := (← getLCtx).decls.toArray.filterMap id
@@ -121,11 +135,15 @@ def ContourVis.rpc (props : PanelWidgetProps) : RequestM (RequestTask Html) :=
             if ! h.isLet then
               continue
             let tp ← instantiateMVars h.value
+            match isArc tp with
+            | some ⟨⟨a, b⟩, c, d, e⟩ =>
+              arcs := ⟨h.userName.toString, ⟨a.toFloat, b.toFloat⟩, c.toFloat, d.toFloat, e.toFloat⟩ :: arcs
+            | none => pure ()
             match isLine tp with
             | some ⟨⟨a, b⟩, ⟨c, d⟩⟩ =>
               lines := ⟨h.userName.toString, ⟨a.toFloat, b.toFloat⟩, ⟨c.toFloat, d.toFloat⟩⟩ :: lines
             | none => pure ()
-          return <Contour edges={lines.toArray}/>
+          return <Contour edges={lines.toArray} arcs={arcs.toArray}/>
       )
     return (<details «open»={true}>
         <summary className="mv2 pointer">Contour Visualization</summary>
@@ -142,4 +160,6 @@ example {α : Type} : 2 + 2 = 5 := by
   let bruh2 := Line (100, 0) (100, 100)
   let bruh3 := Line (100, 100) (0, 100)
   let bruh4 := Line (0, 100) (0, 0)
+  let alskdjasldjkal := Arc (100, 0) 50 270 0
+  let lol := Arc (100, 0) 50 0 90
   let wow := 2 + 2 = 4
